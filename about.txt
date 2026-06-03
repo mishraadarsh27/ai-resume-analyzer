@@ -1,0 +1,17 @@
+AI resume analyzer:
+resume - pythond developer..backend
+python,flask,database tidb,openai
+
+user login/signup
+dashbaord
+
+resume pdf/docx
+upload-
+
+Role: i want to become a backend engineer
+
+Tool: resume analyse + Role
+Skills:
+New skills:
+Interview:
+Project:
