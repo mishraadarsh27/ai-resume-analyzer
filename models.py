@@ -19,3 +19,5 @@ class Reports(Base):
 
 
 # User table to store authentication details
+
+# Reports table to store generated analysis
