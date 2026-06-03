@@ -1,0 +1,268 @@
+/* Global layout */
+:root {
+  --bg: #0f172a;
+  --surface: #111827;
+  --surface-alt: #1e293b;
+  --text: #e2e8f0;
+  --muted: #94a3b8;
+  --accent: #38bdf8;
+  --accent-strong: #0ea5e9;
+  --success: #22c55e;
+  --danger: #f97316;
+  --radius: 16px;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  min-height: 100%;
+  font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  color: var(--text);
+  background: radial-gradient(circle at top left, rgba(56, 189, 248, 0.17), transparent 25%),
+              radial-gradient(circle at bottom right, rgba(16, 185, 129, 0.12), transparent 20%),
+              linear-gradient(180deg, #020617 0%, #0f172a 100%);
+}
+
+body {
+  line-height: 1.6;
+}
+
+a {
+  color: var(--accent);
+  text-decoration: none;
+}
+
+a:hover,
+a:focus {
+  color: var(--accent-strong);
+}
+
+img {
+  max-width: 100%;
+  height: auto;
+}
+
+header {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  padding: 18px 24px;
+  background: rgba(15, 23, 42, 0.96);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid rgba(148, 163, 184, 0.12);
+}
+
+nav {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 18px;
+}
+
+nav a {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--text);
+  padding: 10px 14px;
+  border-radius: 999px;
+  transition: background 0.2s ease, color 0.2s ease;
+}
+
+nav a:hover {
+  background: rgba(56, 189, 248, 0.14);
+  color: #ffffff;
+}
+
+.container {
+  width: min(1120px, calc(100% - 32px));
+  margin: 0 auto;
+  padding: 40px 0 64px;
+}
+
+footer {
+  text-align: center;
+  padding: 22px 0;
+  color: var(--muted);
+  font-size: 0.92rem;
+}
+
+h1, h2, h3 {
+  margin-top: 0;
+  color: #f8fafc;
+}
+
+/* Auth cards */
+.auth-container,
+.card-list {
+  display: grid;
+  place-items: center;
+}
+
+.auth-container {
+  min-height: calc(100vh - 190px);
+}
+
+.auth-card,
+.card {
+  width: min(520px, 100%);
+  background: rgba(15, 23, 42, 0.92);
+  border: 1px solid rgba(148, 163, 184, 0.12);
+  border-radius: var(--radius);
+  box-shadow: 0 24px 80px rgba(15, 23, 42, 0.35);
+  padding: 32px;
+}
+
+.auth-card h2 {
+  margin-bottom: 8px;
+  font-size: clamp(1.75rem, 2.4vw, 2.3rem);
+}
+
+.sub-text {
+  margin-top: 0;
+  margin-bottom: 28px;
+  color: var(--muted);
+  font-size: 0.98rem;
+}
+
+.auth-card form {
+  display: grid;
+  gap: 18px;
+}
+
+.auth-card input,
+.card textarea,
+.card input[type="file"],
+.card select {
+  width: 100%;
+  border-radius: 14px;
+  border: 1px solid rgba(148, 163, 184, 0.22);
+  background: rgba(15, 23, 42, 0.75);
+  color: var(--text);
+  padding: 14px 16px;
+  font-size: 1rem;
+}
+
+.auth-card input::placeholder,
+.card textarea::placeholder {
+  color: rgba(226, 232, 240, 0.55);
+}
+
+button {
+  cursor: pointer;
+  border: none;
+  border-radius: 14px;
+  padding: 14px 18px;
+  font-size: 1rem;
+  font-weight: 700;
+  color: #0f172a;
+  background: linear-gradient(135deg, var(--accent), var(--accent-strong));
+  transition: transform 0.2s ease, background 0.2s ease;
+}
+
+button:hover,
+button:focus {
+  transform: translateY(-1px);
+  background: linear-gradient(135deg, #38bdf8, #0ea5e9);
+}
+
+.auth-links {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: -10px;
+}
+
+.auth-links a {
+  color: var(--muted);
+  font-size: 0.95rem;
+}
+
+.switch-text {
+  margin-top: 18px;
+  color: var(--muted);
+  font-size: 0.96rem;
+}
+
+.switch-text a {
+  color: var(--accent);
+}
+
+/* Dashboard card */
+.card {
+  margin-top: 24px;
+}
+
+.card textarea {
+  min-height: 220px;
+  resize: vertical;
+}
+
+.card p,
+.card label {
+  color: var(--muted);
+  margin-bottom: 10px;
+}
+
+.card input[type="file"] {
+  padding: 10px 14px;
+}
+
+.card button {
+  width: fit-content;
+}
+
+.card h3 {
+  margin-bottom: 14px;
+}
+
+.red {
+  margin-top: 28px;
+  background: rgba(15, 23, 42, 0.9);
+  border: 1px solid rgba(248, 113, 28, 0.18);
+  border-radius: 18px;
+  padding: 24px;
+}
+
+.card ul {
+  list-style: inside disc;
+  margin: 0 0 20px 0;
+  padding-left: 0;
+  color: var(--text);
+}
+
+.card li {
+  margin-bottom: 10px;
+}
+
+.card hr {
+  border: 0;
+  border-top: 1px solid rgba(148, 163, 184, 0.16);
+  margin: 20px 0;
+}
+
+.card-list {
+  gap: 20px;
+}
+
+@media (max-width: 768px) {
+  header {
+    padding: 16px 18px;
+  }
+
+  nav {
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+
+  .container {
+    padding: 24px 0 40px;
+  }
+
+  .auth-card,
+  .card {
+    padding: 26px;
+  }
+}
