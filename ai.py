@@ -110,3 +110,5 @@ Resume:
         }
 
 # Function to analyze resume and extract skills
+
+# Fallback mode when API key is missing
