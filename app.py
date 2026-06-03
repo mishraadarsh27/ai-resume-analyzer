@@ -181,3 +181,5 @@ if __name__ == '__main__':
 # Fetch and display user history
 
 # Parse PDF files using PyPDF2
+
+# Parse Word documents using python-docx
