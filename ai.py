@@ -108,3 +108,5 @@ Resume:
             "interview_questions": [],
             "error": str(e)
         }
+
+# Function to analyze resume and extract skills
