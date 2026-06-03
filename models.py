@@ -17,3 +17,5 @@ class Reports(Base):
     result = Column(Text)
 
 
+
+# User table to store authentication details
