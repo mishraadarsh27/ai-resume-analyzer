@@ -179,3 +179,5 @@ if __name__ == '__main__':
 # Main dashboard route handling file uploads
 
 # Fetch and display user history
+
+# Parse PDF files using PyPDF2
