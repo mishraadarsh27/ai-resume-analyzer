@@ -175,3 +175,5 @@ if __name__ == '__main__':
 # Route for user authentication (Login)
 
 # Route for new user registration
+
+# Main dashboard route handling file uploads
