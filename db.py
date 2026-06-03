@@ -35,3 +35,4 @@ SessionLocal = sessionmaker(
 )
 
 Base = declarative_base()
+# SSL configuration for TiDB Cloud Serverless
