@@ -173,3 +173,5 @@ if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0', port=int(os.getenv('PORT', 5000)))
 
 # Route for user authentication (Login)
+
+# Route for new user registration
