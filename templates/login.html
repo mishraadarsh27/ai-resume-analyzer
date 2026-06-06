@@ -3,23 +3,38 @@
 <div class="auth-container">
     <div class="auth-card">
         <h2>Welcome Back</h2>
-        <p class ="sub-text">
-            Log in to access your account
-        </p>
+        <p class="sub-text">Log in to access your dashboard</p>
+        
         {% if error %}
-            <p style="color: #f87171; background: rgba(248, 113, 113, 0.1); padding: 10px; border-radius: 8px; font-size: 0.9rem; margin-bottom: 15px; border: 1px solid rgba(248, 113, 113, 0.2);">{{ error }}</p>
+            <div class="alert-error">
+                <i class="lucide-alert-circle"></i>
+                <span>{{ error }}</span>
+            </div>
         {% endif %}
+        
         <form method="POST">
-            <input type="email" name="email" placeholder="Enter your email" required>
-            <input type="password" name="password" placeholder="Enter your password" required>
-            <button type="submit">Login</button>
+            <div class="form-group">
+                <label for="email">Email Address</label>
+                <div class="input-icon-wrapper">
+                    <input type="email" id="email" name="email" class="form-control" placeholder="name@company.com" required>
+                    <i class="lucide-mail"></i>
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label for="password">Password</label>
+                <div class="input-icon-wrapper">
+                    <input type="password" id="password" name="password" class="form-control" placeholder="••••••••" required>
+                    <i class="lucide-lock"></i>
+                </div>
+            </div>
+            
+            <button type="submit" class="btn btn-primary">Sign In <i class="lucide-log-in"></i></button>
         </form>
-        <div class="auth-links">
-            <a href="/forgot-password">Forgot Password?</a>
-        </div>
+        
         <p class="switch-text"> 
             Don't have an account? <a href="/signup">Sign up here</a>
         </p>
     </div>
+</div>
 {% endblock %}
-<!-- Displays dynamic error messages if login fails -->
