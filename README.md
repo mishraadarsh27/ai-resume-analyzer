@@ -19,3 +19,7 @@ Run `run.bat` to launch the server.
 - Sleek dark mode
 - Glassmorphism panels
 - Keyframe animations
+
+## Automated Testing
+- Run test_ui.py to verify flows
+- Run test_upload.py to verify uploads
