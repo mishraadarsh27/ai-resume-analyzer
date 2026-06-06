@@ -3,25 +3,63 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI Career Copilot</title>
+    <title>AI Career Copilot | Resume Analyzer & Skill Gap Planner</title>
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Outfit:wght@600;700;800&display=swap" rel="stylesheet">
+    <!-- Main Style -->
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-
 </head>
 <body>
+    <!-- Floating Glow Blobs -->
+    <div class="glow-blobs">
+        <div class="glow-blob blob-1"></div>
+        <div class="glow-blob blob-2"></div>
+        <div class="glow-blob blob-3"></div>
+    </div>
+
+    <!-- Navigation Header -->
     <header>
-        <nav>
-            <a href="/history">History</a>
-            <a href="/dashboard">Dashboard</a>
-            <a href="/logout">Logout</a>
-        </nav>
+        <div class="nav-container">
+            <a href="/" class="logo">
+                <i class="lucide-briefcase" style="color: var(--primary);"></i> AI Career <span>Copilot</span>
+            </a>
+            <nav>
+                {% if session.get('user') %}
+                    <a href="/dashboard" class="{% if request.path == '/dashboard' %}active{% endif %}">
+                        <i class="lucide-layout-dashboard" style="font-size: 1rem;"></i> Dashboard
+                    </a>
+                    <a href="/history" class="{% if request.path == '/history' %}active{% endif %}">
+                        <i class="lucide-history" style="font-size: 1rem;"></i> History
+                    </a>
+                    <a href="/logout" class="cta-btn">
+                        <i class="lucide-log-out" style="font-size: 1rem;"></i> Logout
+                    </a>
+                {% else %}
+                    <a href="/login" class="{% if request.path == '/login' %}active{% endif %}">Login</a>
+                    <a href="/signup" class="cta-btn {% if request.path == '/signup' %}active{% endif %}">Sign Up</a>
+                {% endif %}
+            </nav>
+        </div>
     </header>
+
+    <!-- Main Content -->
     <main class="container">
         {% block content %}
         {% endblock %}
     </main>
+
+    <!-- Footer -->
     <footer>
-        <p>@2026 AI Career Copilot </p>
+        <p>&copy; 2026 AI Career Copilot. Powered by Groq LLM. All rights reserved.</p>
     </footer>
-    
+
+    <!-- Lucide Icons CDN -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script>
+        // Initialize Lucide Icons
+        lucide.createIcons();
+    </script>
 </body>
 </html>
