@@ -14,3 +14,8 @@ Run `run.bat` to launch the server.
 - Gap Analysis
 - Timeline Roadmap
 - Interview Prep
+
+## Premium UI/UX Design
+- Sleek dark mode
+- Glassmorphism panels
+- Keyframe animations
