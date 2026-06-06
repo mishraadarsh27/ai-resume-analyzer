@@ -8,3 +8,9 @@ The app uses Groq API. Set GROQ_API_KEY in .env.
 
 ## Running Locally
 Run `run.bat` to launch the server.
+
+## Key Features
+- AI Resume Parsing
+- Gap Analysis
+- Timeline Roadmap
+- Interview Prep
