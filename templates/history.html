@@ -1,42 +1,493 @@
 {% extends "base.html" %}
 {% block content %}
 
-<h2>Your History</h2>
-{% for r in reports %}
-<div class="card">
-  <p><strong>Resume Preview:</strong></p>
-    <p>{{ r.resume[:150] }}</p>
-
-    <hr>
-
-    <h3>Skills</h3>
-    <ul>
-        {% for s in r.result.get("skills", []) %}
-            <li>{{ s }}</li>
-        {% endfor %}
-    </ul>
-
-    <h3>Missing Skills</h3>
-    <ul>
-        {% for s in r.result.get("missing_skills", []) %}
-            <li>{{ s }}</li>
-        {% endfor %}
-    </ul>
-
-    <h3>Roadmap</h3>
-    <ul>
-        {% for s in r.result.get("roadmap", []) %}
-            <li>{{ s }}</li>
-        {% endfor %}
-    </ul>
-
-    <h3>Interview Questions List</h3>
-    <ul>
-        {% for s in r.result.get("interview_questions", []) %}
-            <li>{{ s }}</li>
-        {% endfor %}
-    </ul>
+<div class="history-controls">
+    <div>
+        <h2 style="font-size: 2.2rem; background: linear-gradient(135deg, #ffffff, #9ca3af); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">
+            Your Analysis History
+        </h2>
+        <p style="color: var(--text-secondary); margin-top: 4px;">Review, search, or manage your previous resume scans and roadmap plans.</p>
+    </div>
+    
+    <!-- Search Bar -->
+    <div class="search-bar-wrapper">
+        <input type="text" id="search-input" class="form-control" placeholder="Search by role or skill...">
+        <i class="lucide-search"></i>
+    </div>
 </div>
-{% endfor %}
+
+{% if not reports %}
+    <div class="empty-state">
+        <i class="lucide-history"></i>
+        <h3>No Scans Found</h3>
+        <p>You haven't run any resume analyses yet. Head over to the dashboard to get started!</p>
+        <a href="/dashboard" class="btn btn-primary" style="margin-top: 10px;">Go to Dashboard <i class="lucide-arrow-right"></i></a>
+    </div>
+{% else %}
+    <div class="history-grid" id="history-grid">
+        {% for r in reports %}
+            <!-- Store JSON results inside data attribute for instant modal loading -->
+            <div class="history-card" id="report-card-{{ r.id }}" data-id="{{ r.id }}" data-role="{{ r.result.get('role', 'Target Career') }}" data-report='{{ r.result | tojson | safe }}'>
+                <div class="history-card-header">
+                    <div>
+                        <div class="history-role">{{ r.result.get('role', 'Target Career') }}</div>
+                        <div class="history-date">Scan ID: #{{ r.id }}</div>
+                    </div>
+                    <span class="history-badge">Report</span>
+                </div>
+                
+                <div class="history-preview">
+                    {{ r.resume }}
+                </div>
+                
+                <div class="history-card-footer">
+                    <span style="font-size: 0.85rem; color: var(--text-muted); display: flex; align-items: center; gap: 4px;">
+                        <i class="lucide-check-square" style="width: 14px; height: 14px; color: var(--primary);"></i> 
+                        {{ r.result.get('skills', []) | length }} Match | {{ r.result.get('missing_skills', []) | length }} Gaps
+                    </span>
+                    
+                    <div class="history-actions">
+                        <button class="btn-icon view-report-btn" title="View Details">
+                            <i class="lucide-eye"></i>
+                        </button>
+                        <button class="btn-icon delete delete-report-btn" data-id="{{ r.id }}" title="Delete Scan">
+                            <i class="lucide-trash-2"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+{% endif %}
+
+<!-- Full Report Modal Overlay -->
+<div class="modal-overlay" id="report-modal">
+    <div class="modal-container">
+        <div class="modal-header">
+            <div class="modal-header-title">
+                <h3 id="modal-role-title">Target Role</h3>
+                <p id="modal-subtitle">AI Analysis Insights</p>
+            </div>
+            <button class="modal-close-btn" id="modal-close">&times;</button>
+        </div>
+        <div class="modal-body" id="modal-body-content">
+            <!-- Dynamically populated from clicked card data -->
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    // DOM Elements
+    const searchInput = document.getElementById('search-input');
+    const historyCards = document.querySelectorAll('.history-card');
+    const deleteBtns = document.querySelectorAll('.delete-report-btn');
+    const viewBtns = document.querySelectorAll('.view-report-btn');
+    
+    const modal = document.getElementById('report-modal');
+    const modalClose = document.getElementById('modal-close');
+    const modalRoleTitle = document.getElementById('modal-role-title');
+    const modalBodyContent = document.getElementById('modal-body-content');
+
+    // Instant Search/Filter
+    if (searchInput) {
+        searchInput.addEventListener('input', () => {
+            const query = searchInput.value.toLowerCase().trim();
+            
+            historyCards.forEach(card => {
+                const role = card.getAttribute('data-role').toLowerCase();
+                const previewText = card.querySelector('.history-preview').textContent.toLowerCase();
+                const reportData = JSON.parse(card.getAttribute('data-report'));
+                
+                // Search in skills and missing skills too
+                const skillsStr = (reportData.skills || []).join(' ').toLowerCase();
+                const gapsStr = (reportData.missing_skills || []).join(' ').toLowerCase();
+
+                const matches = role.includes(query) || 
+                                previewText.includes(query) || 
+                                skillsStr.includes(query) || 
+                                gapsStr.includes(query);
+                                
+                if (matches) {
+                    card.style.display = 'flex';
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+        });
+    }
+
+    // AJAX Report Deletion
+    deleteBtns.forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const reportId = btn.getAttribute('data-id');
+            const card = document.getElementById(`report-card-${reportId}`);
+            
+            if (confirm("Are you sure you want to delete this career scan? This cannot be undone.")) {
+                fetch(`/delete-report/${reportId}`, {
+                    method: 'POST',
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.success) {
+                        // Animate deletion
+                        card.classList.add('fade-out');
+                        setTimeout(() => {
+                            card.remove();
+                            // If grid is now empty, refresh page to show empty state
+                            const remaining = document.querySelectorAll('.history-card');
+                            if (remaining.length === 0) {
+                                window.location.reload();
+                            }
+                        }, 400);
+                    } else {
+                        alert("Error: " + (data.error || "Could not delete report"));
+                    }
+                })
+                .catch(() => {
+                    alert("Network error: Failed to delete report.");
+                });
+            }
+        });
+    });
+
+    // View Modal Actions
+    viewBtns.forEach(btn => {
+        btn.addEventListener('click', () => {
+            const card = btn.closest('.history-card');
+            const role = card.getAttribute('data-role');
+            const reportData = JSON.parse(card.getAttribute('data-report'));
+            
+            openReportModal(role, reportData);
+        });
+    });
+
+    function openReportModal(role, data) {
+        modalRoleTitle.textContent = role;
+        
+        // Calculate match percentage
+        const skillsCount = (data.skills || []).length;
+        const missingCount = (data.missing_skills || []).length;
+        let matchScore = 0;
+        if (skillsCount + missingCount > 0) {
+            matchScore = Math.round((skillsCount / (skillsCount + missingCount)) * 100);
+        }
+
+        // Render modal content
+        modalBodyContent.innerHTML = `
+            <div class="results-header-box">
+                <div class="results-meta-title">
+                    <h2>Analysis Summary</h2>
+                    <p>Scanned target profile matching checklist</p>
+                </div>
+                
+                <!-- Match Score Gauge -->
+                <div class="match-score-gauge">
+                    <svg class="gauge-svg" viewBox="0 0 100 100">
+                        <defs>
+                            <linearGradient id="modalGaugeGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <stop offset="0%" stop-color="var(--primary)" />
+                                <stop offset="100%" stop-color="var(--secondary)" />
+                            </linearGradient>
+                        </defs>
+                        <circle class="gauge-bg" cx="50" cy="50" r="44" />
+                        <circle class="gauge-progress" id="modal-gauge-circle" cx="50" cy="50" r="44" />
+                    </svg>
+                    <div class="gauge-text">
+                        <span class="gauge-percentage" id="modal-gauge-percent">0%</span>
+                        <span class="gauge-label">Match</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tabs Nav inside Modal -->
+            <div class="tabs-nav">
+                <button class="modal-tab-btn active" data-tab="modal-skills-tab">
+                    <i class="lucide-check-circle" style="width: 16px; height: 16px;"></i> Skills
+                </button>
+                <button class="modal-tab-btn" data-tab="modal-gaps-tab">
+                    <i class="lucide-alert-triangle" style="width: 16px; height: 16px;"></i> Gaps
+                </button>
+                <button class="modal-tab-btn" data-tab="modal-roadmap-tab">
+                    <i class="lucide-map" style="width: 16px; height: 16px;"></i> Roadmap
+                </button>
+                <button class="modal-tab-btn" data-tab="modal-prep-tab">
+                    <i class="lucide-help-circle" style="width: 16px; height: 16px;"></i> Prep Prep
+                </button>
+            </div>
+
+            <!-- Tab: Skills -->
+            <div class="modal-tab-content active" id="modal-skills-tab">
+                <h3 style="font-size: 1.1rem; margin-bottom: 12px; color: var(--success);">Matched Skills (${skillsCount})</h3>
+                <div class="tags-cloud">
+                    ${skillsCount > 0 
+                        ? data.skills.map(s => `<span class="skill-tag"><i class="lucide-check" style="width:14px; height:14px;"></i> ${s}</span>`).join('')
+                        : `<span style="color:var(--text-muted); font-size:0.9rem;">No matching skills identified.</span>`
+                    }
+                </div>
+            </div>
+
+            <!-- Tab: Gaps -->
+            <div class="modal-tab-content" id="modal-gaps-tab">
+                <h3 style="font-size: 1.1rem; margin-bottom: 12px; color: var(--warning);">Missing Skills Gaps (${missingCount})</h3>
+                <div class="tags-cloud">
+                    ${missingCount > 0
+                        ? data.missing_skills.map(s => `<span class="skill-tag missing"><i class="lucide-plus" style="width:14px; height:14px;"></i> ${s}</span>`).join('')
+                        : `<span style="color:var(--success); font-size:0.9rem; font-weight:600;"><i class="lucide-award"></i> No missing skills found.</span>`
+                    }
+                </div>
+            </div>
+
+            <!-- Tab: Roadmap -->
+            <div class="modal-tab-content" id="modal-roadmap-tab">
+                <h3 style="font-size: 1.1rem; margin-bottom: 12px;">Step-by-step Development Path</h3>
+                <div class="roadmap-timeline">
+                    ${(data.roadmap || []).length > 0
+                        ? data.roadmap.map((item, index) => {
+                            const isChecked = getRoadmapCheckState(role, index);
+                            return `
+                                <div class="roadmap-item">
+                                    <div class="custom-checkbox-wrapper">
+                                        <input type="checkbox" id="modal-rm-item-${index}" class="modal-roadmap-checkbox" data-index="${index}" ${isChecked ? 'checked' : ''}>
+                                        <label for="modal-rm-item-${index}" class="checkbox-visual">
+                                            <i class="lucide-check"></i>
+                                        </label>
+                                    </div>
+                                    <label for="modal-rm-item-${index}" class="roadmap-text">${item}</label>
+                                </div>
+                            `;
+                          }).join('')
+                        : `<span style="color:var(--text-muted); font-size:0.9rem;">No roadmap details available.</span>`
+                    }
+                </div>
+            </div>
+
+            <!-- Tab: Prep -->
+            <div class="modal-tab-content" id="modal-prep-tab">
+                <h3 style="font-size: 1.1rem; margin-bottom: 12px;">Target Interview Questions</h3>
+                <div class="questions-list">
+                    ${(data.interview_questions || []).length > 0
+                        ? data.interview_questions.map((q, idx) => `
+                            <div class="question-card modal-q-card" id="modal-q-card-${idx}">
+                                <div class="question-header">
+                                    <span>${q}</span>
+                                    <i class="lucide-chevron-down question-toggle-icon"></i>
+                                </div>
+                                <div class="question-answer-panel">
+                                    <div class="question-answer-content">
+                                        <p style="margin-bottom:12px; color:var(--text-primary);">💡 <strong>AI Guidance:</strong></p>
+                                        <p>This question targets skills like <em>${(data.missing_skills || []).slice(0,2).join(', ') || 'your profile'}</em>. Show how you apply structured thinking, and state your plan to learn the framework if you don't have hands-on experience yet.</p>
+                                    </div>
+                                </div>
+                            </div>
+                        `).join('')
+                        : `<span style="color:var(--text-muted); font-size:0.9rem;">No interview prep questions generated.</span>`
+                    }
+                </div>
+            </div>
+        `;
+
+        if (typeof lucide !== 'undefined') {
+            lucide.createIcons();
+        }
+
+        // Setup Modal tabs listeners
+        setupModalTabControls();
+
+        // Setup Modal accordion click listeners
+        setupModalAccordionControls();
+
+        // Setup Modal roadmap checkboxes storage listeners
+        setupModalRoadmapControls(role);
+
+        // Open Modal
+        modal.classList.add('open');
+
+        // Animate circular gauge matchScore
+        setTimeout(() => {
+            animateGauge(matchScore);
+        }, 100);
+    }
+
+    // Modal Circle Gauge Animation
+    function animateGauge(score) {
+        const circle = document.getElementById('modal-gauge-circle');
+        const percentText = document.getElementById('modal-gauge-percent');
+        if (!circle || !percentText) return;
+
+        const circumference = 276.4;
+        circle.style.strokeDasharray = circumference;
+        
+        let currentScore = 0;
+        const duration = 1000; // ms
+        const frameRate = 1000 / 60; 
+        const totalFrames = duration / frameRate;
+        const increment = score / totalFrames;
+
+        const animate = () => {
+            currentScore += increment;
+            if (currentScore >= score) {
+                currentScore = score;
+                clearInterval(animInterval);
+            }
+            
+            percentText.textContent = `${Math.round(currentScore)}%`;
+            const offset = circumference - (circumference * currentScore / 100);
+            circle.style.strokeDashoffset = offset;
+        };
+
+        const animInterval = setInterval(animate, frameRate);
+    }
+
+    // Modal Tabs Controller
+    function setupModalTabControls() {
+        const tabBtns = document.querySelectorAll('.modal-tab-btn');
+        const tabContents = document.querySelectorAll('.modal-tab-content');
+
+        tabBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                const targetTab = btn.getAttribute('data-tab');
+                
+                // Toggle active btn
+                tabBtns.forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+
+                // Toggle active view
+                tabContents.forEach(content => {
+                    content.classList.remove('active');
+                    if (content.id === targetTab) {
+                        content.classList.add('active');
+                    }
+                });
+            });
+        });
+    }
+
+    // Modal Accordions Controller
+    function setupModalAccordionControls() {
+        const questionCards = document.querySelectorAll('.modal-q-card');
+        questionCards.forEach(card => {
+            const header = card.querySelector('.question-header');
+            header.addEventListener('click', () => {
+                const isOpen = card.classList.contains('open');
+                
+                // Close other panels
+                questionCards.forEach(c => c.classList.remove('open'));
+                
+                // Open selected
+                if (!isOpen) {
+                    card.classList.add('open');
+                }
+            });
+        });
+    }
+
+    // Modal Roadmap Checkboxes storage
+    function setupModalRoadmapControls(role) {
+        const checkboxes = document.querySelectorAll('.modal-roadmap-checkbox');
+        checkboxes.forEach(cb => {
+            cb.addEventListener('change', () => {
+                const index = cb.getAttribute('data-index');
+                setRoadmapCheckState(role, index, cb.checked);
+            });
+        });
+    }
+
+    function getRoadmapCheckState(role, index) {
+        const key = `roadmap_checked_${role.replace(/\s+/g, '_').toLowerCase()}`;
+        const stored = localStorage.getItem(key);
+        if (!stored) return false;
+        try {
+            const list = JSON.parse(stored);
+            return list.includes(parseInt(index));
+        } catch (e) {
+            return false;
+        }
+    }
+
+    function setRoadmapCheckState(role, index, check) {
+        const key = `roadmap_checked_${role.replace(/\s+/g, '_').toLowerCase()}`;
+        let list = [];
+        const stored = localStorage.getItem(key);
+        if (stored) {
+            try {
+                list = JSON.parse(stored);
+            } catch (e) {}
+        }
+        
+        const idx = parseInt(index);
+        if (check) {
+            if (!list.includes(idx)) list.push(idx);
+        } else {
+            list = list.filter(item => item !== idx);
+        }
+        localStorage.setItem(key, JSON.stringify(list));
+    }
+
+    // Close Modal Controls
+    if (modalClose) {
+        modalClose.addEventListener('click', closeModal);
+    }
+    
+    // Close modal on click outside
+    window.addEventListener('click', (e) => {
+        if (e.target === modal) {
+            closeModal();
+        }
+    });
+
+    // ESC closes modal
+    window.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && modal.classList.contains('open')) {
+            closeModal();
+        }
+    });
+
+    function closeModal() {
+        modal.classList.remove('open');
+    }
+});
+</script>
+
+<style>
+/* Modal Tab Styling */
+.modal-tab-content {
+  display: none;
+  animation: fadeIn 0.4s ease;
+}
+.modal-tab-content.active {
+  display: block;
+}
+.modal-tab-btn {
+  background: transparent;
+  border: none;
+  border-bottom: 2px solid transparent;
+  color: var(--text-secondary);
+  font-size: 0.95rem;
+  font-weight: 600;
+  padding: 12px 18px;
+  cursor: pointer;
+  border-radius: 0;
+  transition: var(--transition);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  white-space: nowrap;
+}
+.modal-tab-btn:hover {
+  color: var(--text-primary);
+  background: rgba(255, 255, 255, 0.02);
+  transform: none;
+}
+.modal-tab-btn.active {
+  color: var(--primary);
+  border-bottom-color: var(--primary);
+  background: transparent;
+}
+</style>
 
 {% endblock %}
