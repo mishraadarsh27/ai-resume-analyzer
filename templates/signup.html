@@ -1,25 +1,81 @@
 {% extends "base.html" %}
-
 {% block content %}
 <div class="auth-container">
     <div class="auth-card">
         <h2>Create Account</h2>
-        <p class ="sub-text">
-            start your AI career journey
-        </p>
+        <p class="sub-text">Start your AI career journey</p>
+        
         {% if error %}
-            <p style="color: #f87171; background: rgba(248, 113, 113, 0.1); padding: 10px; border-radius: 8px; font-size: 0.9rem; margin-bottom: 15px; border: 1px solid rgba(248, 113, 113, 0.2);">{{ error }}</p>
+            <div class="alert-error">
+                <i class="lucide-alert-circle"></i>
+                <span>{{ error }}</span>
+            </div>
         {% endif %}
-        <form method="POST">
-            <input type="email" name="email" placeholder="Enter your email" required>
-            <input type="password" name="password" placeholder="Create a password" required>
-            <p class="sub-text">Use at least 6 characters</p>
-            <button type="submit">Sign Up</button>
+        
+        <form method="POST" id="signup-form">
+            <div class="form-group">
+                <label for="email">Email Address</label>
+                <div class="input-icon-wrapper">
+                    <input type="email" id="email" name="email" class="form-control" placeholder="name@company.com" required>
+                    <i class="lucide-mail"></i>
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label for="password">Password</label>
+                <div class="input-icon-wrapper">
+                    <input type="password" id="password" name="password" class="form-control" placeholder="••••••••" required>
+                    <i class="lucide-lock"></i>
+                </div>
+                <div class="password-requirements">
+                    <div class="requirement-item" id="req-length">
+                        <i class="lucide-circle" id="req-icon" style="width: 14px; height: 14px;"></i>
+                        <span>Use at least 6 characters</span>
+                    </div>
+                </div>
+            </div>
+            
+            <button type="submit" class="btn btn-primary" id="signup-btn">Sign Up <i class="lucide-user-plus"></i></button>
         </form>
-        <p class="sub-text">
+        
+        <p class="switch-text"> 
             Already have an account? <a href="/login">Login here</a>
         </p>
     </div>
 </div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const passwordInput = document.getElementById('password');
+        const reqLength = document.getElementById('req-length');
+        const reqIcon = document.getElementById('req-icon');
+        const signupBtn = document.getElementById('signup-btn');
+        
+        const validatePassword = () => {
+            const password = passwordInput.value;
+            const isLongEnough = password.length >= 6;
+            
+            if (isLongEnough) {
+                reqLength.classList.add('valid');
+                reqIcon.setAttribute('data-lucide', 'check-circle-2');
+                reqIcon.className = 'lucide-check-circle-2';
+                reqIcon.style.color = 'var(--success)';
+            } else {
+                reqLength.classList.remove('valid');
+                reqIcon.setAttribute('data-lucide', 'circle');
+                reqIcon.className = 'lucide-circle';
+                reqIcon.style.color = '';
+            }
+            
+            if (typeof lucide !== 'undefined') {
+                lucide.createIcons();
+            }
+        };
+
+        passwordInput.addEventListener('input', validatePassword);
+        
+        // Run once on load if there's prefilled text
+        validatePassword();
+    });
+</script>
 {% endblock %}
-<!-- Password rule hints for new users -->
