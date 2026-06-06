@@ -1,56 +1,545 @@
 {% extends "base.html" %}
 {% block content %}
 
-<h2>Welcome, {{ user }}</h2>
-
-<div class="card">
-    <h3>Resume Analyzer</h3>
-
-    <form method="POST" enctype="multipart/form-data">
-        <textarea name="resume" placeholder="Paste your resume text here..." rows="10"></textarea>
-        <p>OR upload file:</p>
-        <input type="file" name="file">
-        <input type="text" name="role" placeholder="What do you want to become? (e.g. data scientist, software engineer, etc.)" required>
-        <button type="submit">Analyze</button>
-    </form>
-
+<div style="margin-bottom: 32px;">
+    <h2 style="font-size: 2.2rem; background: linear-gradient(135deg, #ffffff, #9ca3af); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">
+        Welcome, {{ user.split('@')[0] | title }}
+    </h2>
+    <p style="color: var(--text-secondary); margin-top: 4px;">Upload your resume and define your target role to identify gaps and map your career path.</p>
 </div>
 
-{% if result %}
-    <div class="red">
-        {% if result.error %}
-        <p style="color:red; font-weight: bold; text-align: center; margin: 0;">Error: {{result.error}}</p>
-        {% else %}
-        <h3> Skills</h3>
-        <ul>            
-            {% for s in result.get("skills", []) %}
-                <li>{{ s }}</li>
-            {% endfor  %}
-        </ul>
-
-        <h3> Missing Skills</h3>
-        <ul>
-            {% for s in result.get("missing_skills", []) %}
-                <li>{{ s }}</li>
-            {% endfor  %}
-        </ul>
-       
-        <h3>Roadmap</h3>
-        <ul>
-            {% for s in result.get("roadmap", []) %}
-                <li>{{ s }}</li>
-            {% endfor  %}
-        </ul>
-
-        <h3>Interview Questions List</h3>
-        <ul>
-            {% for s in result.get("interview_questions", []) %}
-                <li>{{ s }}</li>
-            {% endfor  %}
-        </ul>
-        {% endif %}
+<div class="dashboard-grid">
+    <!-- Left Column: Input Form -->
+    <div class="card">
+        <div class="card-title">
+            <i class="lucide-file-text"></i> Resume Analyzer
+        </div>
+        
+        <form id="analyzer-form" method="POST" enctype="multipart/form-data">
+            <!-- Textarea for paste -->
+            <div class="form-group">
+                <label for="resume">Paste Resume Text</label>
+                <textarea id="resume" name="resume" class="form-control" placeholder="Paste your professional experience here..." style="min-height: 140px; padding: 12px;"></textarea>
+            </div>
+            
+            <p style="text-align: center; color: var(--text-muted); font-size: 0.85rem; font-weight: 600; text-transform: uppercase; margin: -8px 0 12px;">OR</p>
+            
+            <!-- Drag & Drop Zone -->
+            <div class="form-group">
+                <label>Upload Document (PDF, DOCX)</label>
+                <div class="drag-drop-zone" id="drop-zone">
+                    <i class="lucide-upload-cloud drag-drop-icon"></i>
+                    <div class="drag-drop-text">
+                        <p>Drag and drop your file here, or <span style="color: var(--primary); font-weight: 600;">browse</span></p>
+                        <span>Supports PDF or DOCX up to 10MB</span>
+                    </div>
+                    <input type="file" id="file-input" name="file" accept=".pdf,.docx">
+                </div>
+                <!-- File Selected State (Hidden initially) -->
+                <div id="file-info-box" class="file-selected-info" style="display: none;">
+                    <div class="file-details">
+                        <i class="lucide-file-check"></i>
+                        <div>
+                            <div class="file-name" id="selected-file-name">filename.pdf</div>
+                            <div class="file-size" id="selected-file-size">124 KB</div>
+                        </div>
+                    </div>
+                    <button type="button" class="file-remove-btn" id="remove-file-btn">
+                        <i class="lucide-x"></i>
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Target Career Goal -->
+            <div class="form-group">
+                <label for="role">Target Career Goal</label>
+                <div class="input-icon-wrapper">
+                    <input type="text" id="role" name="role" class="form-control form-control-text" placeholder="e.g. Senior Backend Engineer, Data Scientist" required>
+                    <i class="lucide-target"></i>
+                </div>
+            </div>
+            
+            <button type="submit" class="btn btn-primary" style="margin-top: 10px;">Analyze Resume <i class="lucide-sparkles"></i></button>
+        </form>
     </div>
-{% endif %}
-{% endblock %}
 
-<!-- Conditional rendering to hide results on error -->
+    <!-- Right Column: Interactive Results / Loading State -->
+    <div class="card" id="results-card" style="min-height: 500px;">
+        <div id="results-display-container">
+            <!-- Dynamically populated via JS -->
+        </div>
+    </div>
+</div>
+
+<!-- Embedded Initial Data -->
+<script id="initial-result-data" type="application/json">
+    {% if result %}{{ result | tojson | safe }}{% else %}null{% endif %}
+</script>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    // DOM Elements
+    const form = document.getElementById('analyzer-form');
+    const resumeTextarea = document.getElementById('resume');
+    const dropZone = document.getElementById('drop-zone');
+    const fileInput = document.getElementById('file-input');
+    const fileInfoBox = document.getElementById('file-info-box');
+    const selectedFileName = document.getElementById('selected-file-name');
+    const selectedFileSize = document.getElementById('selected-file-size');
+    const removeFileBtn = document.getElementById('remove-file-btn');
+    const resultsContainer = document.getElementById('results-display-container');
+
+    // Drag and Drop Handling
+    dropZone.addEventListener('click', () => fileInput.click());
+
+    dropZone.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        dropZone.classList.add('dragover');
+    });
+
+    ['dragleave', 'dragend', 'drop'].forEach(event => {
+        dropZone.addEventListener(event, () => {
+            dropZone.classList.remove('dragover');
+        });
+    });
+
+    dropZone.addEventListener('drop', (e) => {
+        e.preventDefault();
+        if (e.dataTransfer.files.length) {
+            fileInput.files = e.dataTransfer.files;
+            handleFileSelect();
+        }
+    });
+
+    fileInput.addEventListener('change', handleFileSelect);
+
+    function handleFileSelect() {
+        const file = fileInput.files[0];
+        if (file) {
+            selectedFileName.textContent = file.name;
+            // Format size
+            const sizeKB = (file.size / 1024).toFixed(1);
+            selectedFileSize.textContent = `${sizeKB} KB`;
+            
+            // Toggle view
+            dropZone.style.display = 'none';
+            fileInfoBox.style.display = 'flex';
+        }
+    }
+
+    removeFileBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        fileInput.value = '';
+        dropZone.style.display = 'flex';
+        fileInfoBox.style.display = 'none';
+    });
+
+    // Simulated Progress Steps during AJAX request
+    const stepMessages = [
+        "Reading and parsing resume...",
+        "Extracting your key skills...",
+        "Identifying gaps against target role...",
+        "Assembling learning roadmap...",
+        "Curating interview prep questions..."
+    ];
+
+    function showLoader() {
+        resultsContainer.innerHTML = `
+            <div class="analysis-loader-container">
+                <div class="spinner-wrapper">
+                    <div class="spinner-outer"></div>
+                    <div class="spinner-inner"></div>
+                </div>
+                <h3 style="margin-bottom: 24px; font-size: 1.35rem;">AI Career Agent is Working...</h3>
+                <div class="loader-steps" id="loader-steps-list">
+                    ${stepMessages.map((msg, index) => `
+                        <div class="loader-step" id="step-${index}">
+                            <i class="lucide-circle" style="width: 16px; height: 16px;"></i>
+                            <span>${msg}</span>
+                        </div>
+                    `).join('')}
+                </div>
+            </div>
+        `;
+        
+        if (typeof lucide !== 'undefined') {
+            lucide.createIcons();
+        }
+
+        // Animate simulated steps
+        let currentStep = 0;
+        const interval = setInterval(() => {
+            if (currentStep > 0) {
+                const prev = document.getElementById(`step-${currentStep-1}`);
+                if (prev) {
+                    prev.classList.remove('active');
+                    prev.classList.add('completed');
+                    const icon = prev.querySelector('i');
+                    if (icon) {
+                        icon.className = 'lucide-check-circle-2';
+                        icon.setAttribute('data-lucide', 'check-circle-2');
+                    }
+                }
+            }
+            
+            const active = document.getElementById(`step-${currentStep}`);
+            if (active) {
+                active.classList.add('active');
+                const icon = active.querySelector('i');
+                if (icon) {
+                    icon.className = 'lucide-loader-2 spin';
+                    icon.setAttribute('data-lucide', 'loader-2');
+                }
+                if (typeof lucide !== 'undefined') {
+                    lucide.createIcons();
+                }
+            }
+
+            currentStep++;
+            if (currentStep >= stepMessages.length) {
+                clearInterval(interval);
+            }
+        }, 1200);
+
+        return interval;
+    }
+
+    // Submit Handling via AJAX
+    form.addEventListener('submit', (e) => {
+        e.preventDefault();
+        
+        const loaderInterval = showLoader();
+        const formData = new FormData(form);
+
+        fetch('/dashboard?ajax=true', {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            clearInterval(loaderInterval);
+            renderResults(data);
+        })
+        .catch(err => {
+            clearInterval(loaderInterval);
+            renderResults({ error: "Failed to connect to AI server. Please try again." });
+        });
+    });
+
+    // Render Results layout
+    function renderResults(data) {
+        if (!data) {
+            renderEmptyState();
+            return;
+        }
+
+        if (data.error) {
+            resultsContainer.innerHTML = `
+                <div class="alert-error" style="margin-top: 20px;">
+                    <i class="lucide-alert-circle"></i>
+                    <span><strong>Error:</strong> ${data.error}</span>
+                </div>
+                <div style="text-align: center; margin-top: 40px;">
+                    <button id="retry-btn" class="btn btn-secondary"><i class="lucide-refresh-cw"></i> Try Again</button>
+                </div>
+            `;
+            document.getElementById('retry-btn').addEventListener('click', renderEmptyState);
+            if (typeof lucide !== 'undefined') lucide.createIcons();
+            return;
+        }
+
+        // Calculate Match Score
+        const skillsCount = (data.skills || []).length;
+        const missingCount = (data.missing_skills || []).length;
+        let matchScore = 0;
+        if (skillsCount + missingCount > 0) {
+            matchScore = Math.round((skillsCount / (skillsCount + missingCount)) * 100);
+        }
+
+        const role = data.role || document.getElementById('role').value || 'Target Career';
+
+        resultsContainer.innerHTML = `
+            <div class="results-header-box">
+                <div class="results-meta-title">
+                    <h2>Analysis Results</h2>
+                    <p>Roadmap for target role: <span>${role}</span></p>
+                </div>
+                
+                <!-- Match Score Gauge -->
+                <div class="match-score-gauge">
+                    <svg class="gauge-svg" viewBox="0 0 100 100">
+                        <defs>
+                            <linearGradient id="gaugeGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <stop offset="0%" stop-color="var(--primary)" />
+                                <stop offset="100%" stop-color="var(--secondary)" />
+                            </linearGradient>
+                        </defs>
+                        <circle class="gauge-bg" cx="50" cy="50" r="44" />
+                        <circle class="gauge-progress" id="gauge-circle" cx="50" cy="50" r="44" />
+                    </svg>
+                    <div class="gauge-text">
+                        <span class="gauge-percentage" id="gauge-percent">0%</span>
+                        <span class="gauge-label">Match</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tabs Nav -->
+            <div class="tabs-nav">
+                <button class="tab-btn active" data-tab="skills-tab">
+                    <i class="lucide-check-circle" style="width: 16px; height: 16px;"></i> Skills
+                </button>
+                <button class="tab-btn" data-tab="gaps-tab">
+                    <i class="lucide-alert-triangle" style="width: 16px; height: 16px;"></i> Missing
+                </button>
+                <button class="tab-btn" data-tab="roadmap-tab">
+                    <i class="lucide-map" style="width: 16px; height: 16px;"></i> Roadmap
+                </button>
+                <button class="tab-btn" data-tab="prep-tab">
+                    <i class="lucide-help-circle" style="width: 16px; height: 16px;"></i> Prep Prep
+                </button>
+            </div>
+
+            <!-- Tab: Skills -->
+            <div class="tab-content active" id="skills-tab">
+                <h3 style="font-size: 1.1rem; margin-bottom: 12px; color: var(--success);">Matched Skills (${skillsCount})</h3>
+                <p style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 16px;">Skills parsed from your resume matching your goal:</p>
+                <div class="tags-cloud">
+                    ${skillsCount > 0 
+                        ? data.skills.map(s => `<span class="skill-tag"><i class="lucide-check" style="width:14px; height:14px;"></i> ${s}</span>`).join('')
+                        : `<span style="color:var(--text-muted); font-size:0.9rem;">No matching skills identified yet.</span>`
+                    }
+                </div>
+            </div>
+
+            <!-- Tab: Gaps -->
+            <div class="tab-content" id="gaps-tab">
+                <h3 style="font-size: 1.1rem; margin-bottom: 12px; color: var(--warning);">Identified Gaps (${missingCount})</h3>
+                <p style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 16px;">Key requirements for the target role you may want to acquire:</p>
+                <div class="tags-cloud">
+                    ${missingCount > 0
+                        ? data.missing_skills.map(s => `<span class="skill-tag missing"><i class="lucide-plus" style="width:14px; height:14px;"></i> ${s}</span>`).join('')
+                        : `<span style="color:var(--success); font-size:0.9rem; font-weight:600;"><i class="lucide-award"></i> No missing skills found! You are 100% matched.</span>`
+                    }
+                </div>
+            </div>
+
+            <!-- Tab: Roadmap -->
+            <div class="tab-content" id="roadmap-tab">
+                <h3 style="font-size: 1.1rem; margin-bottom: 12px;">Step-by-step Development Path</h3>
+                <p style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 20px;">Check off items as you learn to track your progress:</p>
+                <div class="roadmap-timeline">
+                    ${(data.roadmap || []).length > 0
+                        ? data.roadmap.map((item, index) => {
+                            const isChecked = getRoadmapCheckState(role, index);
+                            return `
+                                <div class="roadmap-item">
+                                    <div class="custom-checkbox-wrapper">
+                                        <input type="checkbox" id="rm-item-${index}" class="roadmap-checkbox" data-index="${index}" ${isChecked ? 'checked' : ''}>
+                                        <label for="rm-item-${index}" class="checkbox-visual">
+                                            <i class="lucide-check"></i>
+                                        </label>
+                                    </div>
+                                    <label for="rm-item-${index}" class="roadmap-text">${item}</label>
+                                </div>
+                            `;
+                          }).join('')
+                        : `<span style="color:var(--text-muted); font-size:0.9rem;">No roadmap details available.</span>`
+                    }
+                </div>
+            </div>
+
+            <!-- Tab: Prep -->
+            <div class="tab-content" id="prep-tab">
+                <h3 style="font-size: 1.1rem; margin-bottom: 12px;">Target Interview Questions</h3>
+                <p style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 20px;">Click on any question to reveal core tips and suggested answers:</p>
+                <div class="questions-list">
+                    ${(data.interview_questions || []).length > 0
+                        ? data.interview_questions.map((q, idx) => `
+                            <div class="question-card" id="q-card-${idx}">
+                                <div class="question-header">
+                                    <span>${q}</span>
+                                    <i class="lucide-chevron-down question-toggle-icon"></i>
+                                </div>
+                                <div class="question-answer-panel">
+                                    <div class="question-answer-content">
+                                        <p style="margin-bottom:12px; color:var(--text-primary);">💡 <strong>AI Guidance:</strong></p>
+                                        <p>This question targets skills like <em>${(data.missing_skills || []).slice(0,2).join(', ') || 'your profile'}</em>. Show how you apply structured thinking, and state your plan to learn the framework if you don't have hands-on experience yet.</p>
+                                    </div>
+                                </div>
+                            </div>
+                        `).join('')
+                        : `<span style="color:var(--text-muted); font-size:0.9rem;">No interview prep questions generated.</span>`
+                    }
+                </div>
+            </div>
+        `;
+
+        if (typeof lucide !== 'undefined') {
+            lucide.createIcons();
+        }
+
+        // Setup tabs listeners
+        setupTabControls();
+
+        // Setup accordion click listeners for questions
+        setupAccordionControls();
+
+        // Setup roadmap checkboxes storage listeners
+        setupRoadmapControls(role);
+
+        // Animate circular gauge matchScore
+        animateGauge(matchScore);
+    }
+
+    function animateGauge(score) {
+        const circle = document.getElementById('gauge-circle');
+        const percentText = document.getElementById('gauge-percent');
+        if (!circle || !percentText) return;
+
+        // Circumference is 2*PI*44 ≈ 276.4
+        const circumference = 276.4;
+        circle.style.strokeDasharray = circumference;
+        
+        // Animating score from 0 to target score
+        let currentScore = 0;
+        const duration = 1200; // ms
+        const frameRate = 1000 / 60; // 60fps
+        const totalFrames = duration / frameRate;
+        const increment = score / totalFrames;
+
+        const animate = () => {
+            currentScore += increment;
+            if (currentScore >= score) {
+                currentScore = score;
+                clearInterval(animInterval);
+            }
+            
+            percentText.textContent = `${Math.round(currentScore)}%`;
+            const offset = circumference - (circumference * currentScore / 100);
+            circle.style.strokeDashoffset = offset;
+        };
+
+        const animInterval = setInterval(animate, frameRate);
+    }
+
+    // Tabs Controller
+    function setupTabControls() {
+        const tabBtns = document.querySelectorAll('.tab-btn');
+        const tabContents = document.querySelectorAll('.tab-content');
+
+        tabBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                const targetTab = btn.getAttribute('data-tab');
+                
+                // Toggle nav active
+                tabBtns.forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+
+                // Toggle body active
+                tabContents.forEach(content => {
+                    content.classList.remove('active');
+                    if (content.id === targetTab) {
+                        content.classList.add('active');
+                    }
+                });
+            });
+        });
+    }
+
+    // Accordions Controller
+    function setupAccordionControls() {
+        const questionCards = document.querySelectorAll('.question-card');
+        questionCards.forEach(card => {
+            const header = card.querySelector('.question-header');
+            header.addEventListener('click', () => {
+                const isOpen = card.classList.contains('open');
+                
+                // Close other panels
+                questionCards.forEach(c => c.classList.remove('open'));
+                
+                // Open selected
+                if (!isOpen) {
+                    card.classList.add('open');
+                }
+            });
+        });
+    }
+
+    // Roadmap Checkbox storage helper
+    function setupRoadmapControls(role) {
+        const checkboxes = document.querySelectorAll('.roadmap-checkbox');
+        checkboxes.forEach(cb => {
+            cb.addEventListener('change', () => {
+                const index = cb.getAttribute('data-index');
+                setRoadmapCheckState(role, index, cb.checked);
+            });
+        });
+    }
+
+    function getRoadmapCheckState(role, index) {
+        const key = `roadmap_checked_${role.replace(/\s+/g, '_').toLowerCase()}`;
+        const stored = localStorage.getItem(key);
+        if (!stored) return false;
+        try {
+            const list = JSON.parse(stored);
+            return list.includes(parseInt(index));
+        } catch (e) {
+            return false;
+        }
+    }
+
+    function setRoadmapCheckState(role, index, check) {
+        const key = `roadmap_checked_${role.replace(/\s+/g, '_').toLowerCase()}`;
+        let list = [];
+        const stored = localStorage.getItem(key);
+        if (stored) {
+            try {
+                list = JSON.parse(stored);
+            } catch (e) {}
+        }
+        
+        const idx = parseInt(index);
+        if (check) {
+            if (!list.includes(idx)) list.push(idx);
+        } else {
+            list = list.filter(item => item !== idx);
+        }
+        localStorage.setItem(key, JSON.stringify(list));
+    }
+
+    function renderEmptyState() {
+        resultsContainer.innerHTML = `
+            <div class="empty-state">
+                <i class="lucide-briefcase"></i>
+                <h3>Ready to Analyze</h3>
+                <p>Upload a PDF/DOCX resume or paste your text on the left, specify your career goal, and click Analyze to generate insights.</p>
+            </div>
+        `;
+        if (typeof lucide !== 'undefined') {
+            lucide.createIcons();
+        }
+    }
+
+    // Load initial data if passed from Flask
+    const initialDataBlock = document.getElementById('initial-result-data');
+    if (initialDataBlock) {
+        try {
+            const initialResult = JSON.parse(initialDataBlock.textContent);
+            if (initialResult) {
+                renderResults(initialResult);
+            } else {
+                renderEmptyState();
+            }
+        } catch (e) {
+            renderEmptyState();
+        }
+    } else {
+        renderEmptyState();
+    }
+});
+</script>
+{% endblock %}
