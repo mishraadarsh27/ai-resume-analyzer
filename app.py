@@ -219,3 +219,5 @@ if __name__ == '__main__':
 # Route to delete saved career report scan
 
 # Persistent dashboard load on GET request
+
+# AJAX analysis request handler returning JSON
