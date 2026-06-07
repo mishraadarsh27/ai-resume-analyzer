@@ -23,3 +23,4 @@ Run `run.bat` to launch the server.
 ## Automated Testing
 - Run test_ui.py to verify flows
 - Run test_upload.py to verify uploads
+<!-- deployment update 5 -->
