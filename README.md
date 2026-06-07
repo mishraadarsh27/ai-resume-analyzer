@@ -26,3 +26,4 @@ Run `run.bat` to launch the server.
 <!-- deployment update 5 -->
 <!-- deployment update 6 -->
 <!-- deployment update 7 -->
+<!-- deployment update 8 -->
