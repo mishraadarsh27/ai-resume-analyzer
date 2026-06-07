@@ -6,6 +6,7 @@ import models
 import PyPDF2
 import docx
 import json
+from werkzeug.security import generate_password_hash, check_password_hash
 
 app = Flask(__name__)
 app.secret_key = os.getenv("SECRET_KEY", "secret123")
@@ -30,7 +31,8 @@ def signup():
             if existing_user:
                 return render_template("signup.html", error="User already exists")
 
-            user = models.User(email=email, password=password)
+            hashed_password = generate_password_hash(password)
+            user = models.User(email=email, password=hashed_password)
             db.add(user)
             db.commit()
 
@@ -48,9 +50,9 @@ def login():
             email = request.form.get("email")
             password = request.form.get("password")
 
-            user = db.query(models.User).filter_by(email=email, password=password).first()
+            user = db.query(models.User).filter_by(email=email).first()
 
-            if user:
+            if user and check_password_hash(user.password, password):
                 session["user"] = user.email
                 return redirect("/dashboard")
             else:
