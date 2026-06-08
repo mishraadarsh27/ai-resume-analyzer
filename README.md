@@ -74,7 +74,7 @@ This project is fully configured for deployment on Vercel.
 3. Add the `GROQ_API_KEY`, `DATABASE_URL`, and `SECRET_KEY` in the Vercel Environment Variables settings.
 4. Click **Deploy**. Vercel will use the `vercel.json` file to route the serverless functions automatically.
 
-## 🤝 Contributing
+##  Contributing
 
 Contributions, issues, and feature requests are welcome! Feel free to check the issues page if you want to contribute.
 
