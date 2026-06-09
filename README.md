@@ -1,8 +1,8 @@
-# 🚀 AI Resume Analyzer
+#  AI Resume Analyzer
 
 An intelligent, AI-powered web application designed to help job seekers optimize their resumes for specific target roles. By analyzing your current resume against your dream job, it provides actionable insights, identifies missing skills, generates a learning roadmap, and prepares you with tailored interview questions.
 
-## ✨ Features
+##  Features
 
 - **Smart Analysis:** Upload your resume (PDF/DOCX) or paste the text, provide your target role, and let the AI do the rest.
 - **Skill Extraction & Gap Analysis:** Identifies the skills you already have and highlights the crucial skills you are missing for your target role.
@@ -12,7 +12,7 @@ An intelligent, AI-powered web application designed to help job seekers optimize
 - **History Dashboard:** Automatically saves your previous resume analyses so you can track your improvement over time.
 - **Modern UI:** A sleek, responsive, and beautiful glassmorphism-inspired design.
 
-## 🛠️ Technology Stack
+##  Technology Stack
 
 - **Backend:** Python, Flask
 - **Database:** TiDB (Distributed MySQL-compatible database) via SQLAlchemy
