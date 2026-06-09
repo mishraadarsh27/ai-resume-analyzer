@@ -20,7 +20,7 @@ An intelligent, AI-powered web application designed to help job seekers optimize
 - **Frontend:** HTML5, Vanilla CSS
 - **Deployment:** Pre-configured for Vercel Serverless deployment
 
-## ⚙️ Local Setup Instructions
+##  Local Setup Instructions
 
 Follow these steps to run the application on your local machine:
 
