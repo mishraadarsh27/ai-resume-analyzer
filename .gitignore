@@ -4,3 +4,4 @@ venv/
 *.db
 fake.*
 test_*.py
+interview_prep.md
