@@ -11,43 +11,54 @@
         {% if session.get('user') %}
             <a href="/dashboard" class="btn btn-primary">Go to Dashboard <i class="lucide-arrow-right"></i></a>
         {% else %}
-            <a href="/signup" class="btn btn-primary">Get Started Free <i class="lucide-arrow-right"></i></a>
+            <a href="/signup" class="btn btn-primary">Get Started Free <i class="lucide-sparkles"></i></a>
             <a href="/login" class="btn btn-secondary">Sign In</a>
         {% endif %}
     </div>
 </div>
 
-<div class="features-grid">
-    <div class="feature-card">
-        <div class="feature-icon">
-            <i class="lucide-file-text"></i>
-        </div>
-        <h3>AI Resume Parsing</h3>
-        <p>Upload your PDF/DOCX or paste your resume text. Our AI accurately parses your experience and profiles your existing skills in seconds.</p>
+<div class="features-container">
+    <div class="connecting-paths">
+        <svg viewBox="0 0 1000 200" preserveAspectRatio="none">
+            <path class="path-line" d="M 120,100 C 300,-50 400,250 620,100 C 800,-50 900,250 1100,100" />
+        </svg>
     </div>
-    
-    <div class="feature-card">
-        <div class="feature-icon">
-            <i class="lucide-alert-triangle"></i>
+    <div class="features-grid">
+        <div class="feature-card">
+            <div class="card-floating-badge"><i class="lucide-zap" style="font-size: 10px;"></i> Auto</div>
+            <div class="feature-icon">
+                <i class="lucide-file-text"></i>
+            </div>
+            <h3>AI Resume Parsing</h3>
+            <p>Upload your PDF/DOCX or paste your resume text. Our AI accurately parses your experience and profiles your existing skills in seconds.</p>
         </div>
-        <h3>Skill Gap Analysis</h3>
-        <p>Input your target role. The AI maps your background against industry expectations and details the exact skills you're missing.</p>
-    </div>
-    
-    <div class="feature-card">
-        <div class="feature-icon">
-            <i class="lucide-map"></i>
+        
+        <div class="feature-card">
+            <div class="card-floating-badge"><i class="lucide-target" style="font-size: 10px;"></i> Precision</div>
+            <div class="feature-icon">
+                <i class="lucide-pie-chart"></i>
+            </div>
+            <h3>Skill Gap Analysis</h3>
+            <p>Input your target role. The AI maps your background against industry expectations and details the exact skills you're missing.</p>
         </div>
-        <h3>Interactive Roadmap</h3>
-        <p>Get a custom-generated timeline of learning steps to acquire missing skills, complete with checklists you can track along the way.</p>
-    </div>
-    
-    <div class="feature-card">
-        <div class="feature-icon">
-            <i class="lucide-message-square"></i>
+        
+        <div class="feature-card">
+            <div class="card-floating-badge"><i class="lucide-check-circle" style="font-size: 10px;"></i> Trackable</div>
+            <div class="feature-icon">
+                <i class="lucide-git-branch"></i>
+            </div>
+            <h3>Interactive Roadmap</h3>
+            <p>Get a custom-generated timeline of learning steps to acquire missing skills, complete with checklists you can track along the way.</p>
         </div>
-        <h3>Tailored Interview Prep</h3>
-        <p>Practice with custom questions tailored directly to your gaps and target role, complete with interactive revealable model answers.</p>
+        
+        <div class="feature-card">
+            <div class="card-floating-badge"><i class="lucide-mic" style="font-size: 10px;"></i> Practice</div>
+            <div class="feature-icon">
+                <i class="lucide-mic-2"></i>
+            </div>
+            <h3>Tailored Interview Prep</h3>
+            <p>Practice with custom questions tailored directly to your gaps and target role, complete with interactive revealable model answers.</p>
+        </div>
     </div>
 </div>
 

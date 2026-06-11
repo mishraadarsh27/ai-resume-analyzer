@@ -257,7 +257,10 @@ document.addEventListener('DOMContentLoaded', () => {
                                             <i class="lucide-check"></i>
                                         </label>
                                     </div>
-                                    <label for="modal-rm-item-${index}" class="roadmap-text">${item}</label>
+                                    <div class="roadmap-text" style="display:flex; flex-direction:column; gap:4px; margin-top: 2px;">
+                                        <label for="modal-rm-item-${index}" style="cursor:pointer; font-weight:600;">${typeof item === 'string' ? item : item.step}</label>
+                                        ${typeof item === 'object' && item.details ? `<span style="font-size:0.85rem; color:var(--text-secondary); line-height: 1.5;">${item.details}</span>` : ''}
+                                    </div>
                                 </div>
                             `;
                           }).join('')
@@ -274,13 +277,13 @@ document.addEventListener('DOMContentLoaded', () => {
                         ? data.interview_questions.map((q, idx) => `
                             <div class="question-card modal-q-card" id="modal-q-card-${idx}">
                                 <div class="question-header">
-                                    <span>${q}</span>
+                                    <span>${typeof q === 'string' ? q : q.question}</span>
                                     <i class="lucide-chevron-down question-toggle-icon"></i>
                                 </div>
                                 <div class="question-answer-panel">
                                     <div class="question-answer-content">
                                         <p style="margin-bottom:12px; color:var(--text-primary);">💡 <strong>AI Guidance:</strong></p>
-                                        <p>This question targets skills like <em>${(data.missing_skills || []).slice(0,2).join(', ') || 'your profile'}</em>. Show how you apply structured thinking, and state your plan to learn the framework if you don't have hands-on experience yet.</p>
+                                        <p>${typeof q === 'object' && q.guidance ? q.guidance : `This question targets skills like <em>${(data.missing_skills || []).slice(0,2).join(', ') || 'your profile'}</em>. Show how you apply structured thinking, and state your plan to learn the framework if you don't have hands-on experience yet.`}</p>
                                     </div>
                                 </div>
                             </div>
