@@ -288,18 +288,24 @@ document.addEventListener('DOMContentLoaded', () => {
             </div>
 
             <!-- Tabs Nav -->
-            <div class="tabs-nav">
+            <div class="tabs-nav" style="flex-wrap: wrap;">
                 <button class="tab-btn active" data-tab="skills-tab">
                     <i class="lucide-check-circle" style="width: 16px; height: 16px;"></i> Skills
                 </button>
                 <button class="tab-btn" data-tab="gaps-tab">
                     <i class="lucide-alert-triangle" style="width: 16px; height: 16px;"></i> Missing
                 </button>
+                <button class="tab-btn" data-tab="jobs-tab">
+                    <i class="lucide-briefcase" style="width: 16px; height: 16px;"></i> Jobs
+                </button>
+                <button class="tab-btn" data-tab="critique-tab">
+                    <i class="lucide-edit-3" style="width: 16px; height: 16px;"></i> Critique
+                </button>
                 <button class="tab-btn" data-tab="roadmap-tab">
                     <i class="lucide-map" style="width: 16px; height: 16px;"></i> Roadmap
                 </button>
                 <button class="tab-btn" data-tab="prep-tab">
-                    <i class="lucide-help-circle" style="width: 16px; height: 16px;"></i> Prep Prep
+                    <i class="lucide-help-circle" style="width: 16px; height: 16px;"></i> Prep
                 </button>
             </div>
 
@@ -323,6 +329,50 @@ document.addEventListener('DOMContentLoaded', () => {
                     ${missingCount > 0
                         ? data.missing_skills.map(s => `<span class="skill-tag missing"><i class="lucide-plus" style="width:14px; height:14px;"></i> ${s}</span>`).join('')
                         : `<span style="color:var(--success); font-size:0.9rem; font-weight:600;"><i class="lucide-award"></i> No missing skills found! You are 100% matched.</span>`
+                    }
+                </div>
+            </div>
+
+            <!-- Tab: Jobs -->
+            <div class="tab-content" id="jobs-tab">
+                <h3 style="font-size: 1.1rem; margin-bottom: 12px; color: var(--primary);">Recommended Roles</h3>
+                <p style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 16px;">Based solely on your current resume skills, you might be a fit for:</p>
+                <div class="questions-list">
+                    ${(data.job_recommendations || []).length > 0
+                        ? data.job_recommendations.map((job) => `
+                            <div style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; padding: 12px; margin-bottom: 12px;">
+                                <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 6px;">
+                                    <i class="lucide-briefcase" style="color: var(--primary); width: 16px; height: 16px;"></i>
+                                    <strong style="font-size: 1rem;">${typeof job === 'string' ? job : job.role}</strong>
+                                </div>
+                                <p style="font-size: 0.9rem; color: var(--text-secondary); line-height: 1.5; margin-left: 24px;">
+                                    ${typeof job === 'object' && job.match_reason ? job.match_reason : 'Matches your current skill profile.'}
+                                </p>
+                            </div>
+                        `).join('')
+                        : `<span style="color:var(--text-muted); font-size:0.9rem;">No specific job recommendations generated.</span>`
+                    }
+                </div>
+            </div>
+
+            <!-- Tab: Critique -->
+            <div class="tab-content" id="critique-tab">
+                <h3 style="font-size: 1.1rem; margin-bottom: 12px; color: #f59e0b;">Resume Critique</h3>
+                <p style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 16px;">Actionable feedback to improve your resume's impact and ATS readability:</p>
+                <div class="questions-list">
+                    ${(data.resume_critique || []).length > 0
+                        ? data.resume_critique.map((crit) => `
+                            <div style="background: rgba(245, 158, 11, 0.05); border-left: 3px solid #f59e0b; border-radius: 4px; padding: 12px; margin-bottom: 12px;">
+                                <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 6px;">
+                                    <i class="lucide-alert-circle" style="color: #f59e0b; width: 16px; height: 16px;"></i>
+                                    <strong style="font-size: 0.95rem; color: #f59e0b;">${typeof crit === 'string' ? 'Feedback' : crit.category}</strong>
+                                </div>
+                                <p style="font-size: 0.9rem; color: var(--text-primary); line-height: 1.5; margin-left: 24px;">
+                                    ${typeof crit === 'object' && crit.feedback ? crit.feedback : crit}
+                                </p>
+                            </div>
+                        `).join('')
+                        : `<span style="color:var(--success); font-size:0.9rem; font-weight: 600;"><i class="lucide-check-circle"></i> Your resume looks well-structured and impactful!</span>`
                     }
                 </div>
             </div>

@@ -17,7 +17,7 @@ class Reports(Base):
     result = Column(Text)
 
 
-
+# Note : The AI'JSON.output is converted to a string and then stored here
 # User table to store authentication details
 
 # Reports table to store generated analysis
