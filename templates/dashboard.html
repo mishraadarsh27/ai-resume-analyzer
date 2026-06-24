@@ -341,9 +341,12 @@ document.addEventListener('DOMContentLoaded', () => {
                     ${(data.job_recommendations || []).length > 0
                         ? data.job_recommendations.map((job) => `
                             <div style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; padding: 12px; margin-bottom: 12px;">
-                                <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 6px;">
-                                    <i class="lucide-briefcase" style="color: var(--primary); width: 16px; height: 16px;"></i>
-                                    <strong style="font-size: 1rem;">${typeof job === 'string' ? job : job.role}</strong>
+                                <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px;">
+                                    <div style="display: flex; align-items: center; gap: 8px;">
+                                        <i class="lucide-briefcase" style="color: var(--primary); width: 16px; height: 16px;"></i>
+                                        <strong style="font-size: 1rem;">${typeof job === 'string' ? job : job.role}</strong>
+                                    </div>
+                                    ${typeof job === 'object' && job.search_link ? `<a href="${job.search_link}" target="_blank" style="font-size: 0.75rem; background: var(--primary); color: white; padding: 4px 10px; border-radius: 4px; text-decoration: none; display: flex; align-items: center; gap: 4px;"><i class="lucide-external-link" style="width: 12px; height: 12px;"></i> View Jobs</a>` : ''}
                                 </div>
                                 <p style="font-size: 0.9rem; color: var(--text-secondary); line-height: 1.5; margin-left: 24px;">
                                     ${typeof job === 'object' && job.match_reason ? job.match_reason : 'Matches your current skill profile.'}
